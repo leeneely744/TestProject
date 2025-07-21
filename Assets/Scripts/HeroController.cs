@@ -6,7 +6,7 @@ public class HeroController : MonoBehaviour
     [SerializeField] private bool useRigidbody = true;
     
     private Rigidbody2D rb2d;
-    private Vector2 movement;
+    private Vector3 movement;
     
     void Start()
     {
@@ -25,7 +25,7 @@ public class HeroController : MonoBehaviour
     {
         // Get input from WASD keys
         float horizontal = 0f;
-        float vertical = 0f;
+        float forward = 0f;
         
         // Check for WASD input
         if (Input.GetKey(KeyCode.A))
@@ -34,12 +34,12 @@ public class HeroController : MonoBehaviour
             horizontal = 1f;
             
         if (Input.GetKey(KeyCode.W))
-            vertical = -1f;  // W key moves back (negative Y)
+            forward = 1f;   // W key moves forward (positive Z)
         else if (Input.GetKey(KeyCode.S))
-            vertical = 1f;   // S key moves front (positive Y)
+            forward = -1f;  // S key moves backward (negative Z)
         
-        // Store movement vector
-        movement = new Vector2(horizontal, vertical).normalized;
+        // Store movement vector (X, Y, Z)
+        movement = new Vector3(horizontal, 0f, forward).normalized;
     }
     
     void FixedUpdate()
@@ -47,13 +47,14 @@ public class HeroController : MonoBehaviour
         // Move the hero
         if (useRigidbody && rb2d != null)
         {
-            // Use Rigidbody2D for physics-based movement
-            rb2d.MovePosition(rb2d.position + movement * moveSpeed * Time.fixedDeltaTime);
+            // For 2D Rigidbody, convert 3D movement to 2D
+            Vector2 movement2D = new Vector2(movement.x, movement.z);
+            rb2d.MovePosition(rb2d.position + movement2D * moveSpeed * Time.fixedDeltaTime);
         }
         else
         {
-            // Use Transform for direct movement
-            transform.position += (Vector3)(movement * moveSpeed * Time.fixedDeltaTime);
+            // Use Transform for direct 3D movement
+            transform.position += movement * moveSpeed * Time.fixedDeltaTime;
         }
     }
     
@@ -63,7 +64,7 @@ public class HeroController : MonoBehaviour
         Gizmos.color = Color.blue;
         Gizmos.DrawWireSphere(transform.position, 0.5f);
         
-        if (movement != Vector2.zero)
+        if (movement != Vector3.zero)
         {
             Gizmos.color = Color.red;
             Gizmos.DrawRay(transform.position, movement);
