@@ -2,72 +2,167 @@ using UnityEngine;
 
 public class HeroController : MonoBehaviour
 {
-    [SerializeField] private float moveSpeed = 5f;
-    [SerializeField] private bool useRigidbody = true;
+    [Header("Movement Settings")]
+    public float moveSpeed = 5f;
+    public float rotationSpeed = 720f; // degrees per second
     
-    private Rigidbody2D rb2d;
-    private Vector3 movement;
+    [Header("Input Settings")]
+    public KeyCode leftKey = KeyCode.A;
+    public KeyCode rightKey = KeyCode.D;
+    public KeyCode upKey = KeyCode.W;
+    public KeyCode downKey = KeyCode.S;
+    
+    private Vector3 moveDirection;
+    private Rigidbody rb;
     
     void Start()
     {
-        // Try to get Rigidbody2D component
-        rb2d = GetComponent<Rigidbody2D>();
-        
-        // If no Rigidbody2D found, add one
-        if (rb2d == null && useRigidbody)
+        rb = GetComponent<Rigidbody>();
+        if (rb == null)
         {
-            rb2d = gameObject.AddComponent<Rigidbody2D>();
-            rb2d.gravityScale = 0f; // For top-down movement
+            Debug.LogError("Rigidbody component is required for HeroController!");
         }
     }
     
     void Update()
     {
-        // Get input from WASD keys
-        float horizontal = 0f;
-        float forward = 0f;
-        
-        // Check for WASD input
-        if (Input.GetKey(KeyCode.A))
-            horizontal = -1f;
-        else if (Input.GetKey(KeyCode.D))
-            horizontal = 1f;
-            
-        if (Input.GetKey(KeyCode.W))
-            forward = 1f;   // W key moves forward (positive Z)
-        else if (Input.GetKey(KeyCode.S))
-            forward = -1f;  // S key moves backward (negative Z)
-        
-        // Store movement vector (X, Y, Z)
-        movement = new Vector3(horizontal, 0f, forward).normalized;
+        HandleInput();
+        RotateHero();
     }
     
     void FixedUpdate()
     {
-        // Move the hero
-        if (useRigidbody && rb2d != null)
+        MoveHero();
+    }
+    
+    void HandleInput()
+    {
+        moveDirection = Vector3.zero;
+        
+        // Handle movement input
+        if (Input.GetKey(leftKey))
         {
-            // For 2D Rigidbody, convert 3D movement to 2D
-            Vector2 movement2D = new Vector2(movement.x, movement.z);
-            rb2d.MovePosition(rb2d.position + movement2D * moveSpeed * Time.fixedDeltaTime);
+            moveDirection += Vector3.left; // X direction negative
         }
-        else
+        if (Input.GetKey(rightKey))
         {
-            // Use Transform for direct 3D movement
-            transform.position += movement * moveSpeed * Time.fixedDeltaTime;
+            moveDirection += Vector3.right; // X direction positive
+        }
+        if (Input.GetKey(upKey))
+        {
+            moveDirection += Vector3.forward; // Z direction positive
+        }
+        if (Input.GetKey(downKey))
+        {
+            moveDirection += Vector3.back; // Z direction negative
+        }
+        
+        // Normalize diagonal movement
+        if (moveDirection.magnitude > 1)
+        {
+            moveDirection.Normalize();
         }
     }
     
-    // Optional: Visual feedback in the editor
-    void OnDrawGizmosSelected()
+    void MoveHero()
     {
-        Gizmos.color = Color.blue;
-        Gizmos.DrawWireSphere(transform.position, 0.5f);
-        
-        if (movement != Vector3.zero)
+        if (rb != null && moveDirection != Vector3.zero)
         {
-            Gizmos.color = Color.red;
-            Gizmos.DrawRay(transform.position, movement);
+            Vector3 movement = moveDirection * moveSpeed * Time.fixedDeltaTime;
+            rb.MovePosition(transform.position + movement);
+        }
+    }
+    
+    void RotateHero()
+    {
+        if (moveDirection != Vector3.zero)
+        {
+            // Calculate target rotation based on movement direction
+            Quaternion targetRotation = Quaternion.LookRotation(moveDirection);
+            
+            // Smoothly rotate towards the target direction
+            transform.rotation = Quaternion.RotateTowards(
+                transform.rotation, 
+                targetRotation, 
+                rotationSpeed * Time.deltaTime
+            );
+        }
+    }
+}
+
+// Alternative version using instant rotation instead of smooth rotation
+public class HeroControllerInstantRotation : MonoBehaviour
+{
+    [Header("Movement Settings")]
+    public float moveSpeed = 5f;
+    
+    [Header("Input Settings")]
+    public KeyCode leftKey = KeyCode.A;
+    public KeyCode rightKey = KeyCode.D;
+    public KeyCode upKey = KeyCode.W;
+    public KeyCode downKey = KeyCode.S;
+    
+    private Vector3 moveDirection;
+    private Rigidbody rb;
+    
+    void Start()
+    {
+        rb = GetComponent<Rigidbody>();
+    }
+    
+    void Update()
+    {
+        HandleInput();
+        RotateHeroInstantly();
+    }
+    
+    void FixedUpdate()
+    {
+        MoveHero();
+    }
+    
+    void HandleInput()
+    {
+        moveDirection = Vector3.zero;
+        
+        if (Input.GetKey(leftKey))
+        {
+            moveDirection += Vector3.left;
+        }
+        if (Input.GetKey(rightKey))
+        {
+            moveDirection += Vector3.right;
+        }
+        if (Input.GetKey(upKey))
+        {
+            moveDirection += Vector3.forward;
+        }
+        if (Input.GetKey(downKey))
+        {
+            moveDirection += Vector3.back;
+        }
+        
+        if (moveDirection.magnitude > 1)
+        {
+            moveDirection.Normalize();
+        }
+    }
+    
+    void MoveHero()
+    {
+        if (rb != null && moveDirection != Vector3.zero)
+        {
+            Vector3 movement = moveDirection * moveSpeed * Time.fixedDeltaTime;
+            rb.MovePosition(transform.position + movement);
+        }
+    }
+    
+    void RotateHeroInstantly()
+    {
+        if (moveDirection != Vector3.zero)
+        {
+            // Instantly rotate to face movement direction
+            transform.rotation = Quaternion.LookRotation(moveDirection);
         }
     }
 }
