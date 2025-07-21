@@ -34,9 +34,9 @@ public class HeroController : MonoBehaviour
             horizontal = 1f;
             
         if (Input.GetKey(KeyCode.W))
-            vertical = 1f;
+            vertical = -1f;  // W key moves back (negative Y)
         else if (Input.GetKey(KeyCode.S))
-            vertical = -1f;
+            vertical = 1f;   // S key moves front (positive Y)
         
         // Store movement vector
         movement = new Vector2(horizontal, vertical).normalized;
