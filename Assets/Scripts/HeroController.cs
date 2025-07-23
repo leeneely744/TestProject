@@ -30,8 +30,17 @@ public class HeroController : MonoBehaviour
             Debug.Log("Added Rigidbody component to hero");
         }
         
-        // Try to get Animator first, if not available, use Animation component
+        // Check for existing Animator component
         animator = GetComponent<Animator>();
+        
+        // If Animator exists but has no controller, prefer using Animation component
+        if (animator != null && animator.runtimeAnimatorController == null)
+        {
+            Debug.Log("Animator found but no controller assigned. Using Animation component instead.");
+            animator = null; // Don't use the Animator
+        }
+        
+        // Set up Animation component if not using Animator
         if (animator == null)
         {
             animationComponent = GetComponent<Animation>();
@@ -120,11 +129,52 @@ public class HeroController : MonoBehaviour
     {
         if (runningAnimation == null) return;
         
-        if (animationComponent != null)
+        if (animator != null && animator.runtimeAnimatorController != null)
+        {
+            // Try to find any bool parameter that might control movement
+            var parameters = animator.parameters;
+            bool foundMovementParameter = false;
+            
+            foreach (var param in parameters)
+            {
+                if (param.type == AnimatorControllerParameterType.Bool)
+                {
+                    // Try common parameter names for movement
+                    if (param.name.ToLower().Contains("move") || 
+                        param.name.ToLower().Contains("run") || 
+                        param.name.ToLower().Contains("walk") ||
+                        param.name == "IsMoving")
+                    {
+                        animator.SetBool(param.name, isMoving);
+                        foundMovementParameter = true;
+                        Debug.Log($"Using parameter: {param.name} = {isMoving}");
+                        break;
+                    }
+                }
+            }
+            
+            // If no movement parameter found, try to play animation directly
+            if (!foundMovementParameter)
+            {
+                if (isMoving)
+                {
+                    // Try to play the running state directly
+                    animator.Play("Fire_Running", 0, 0f);
+                }
+                else
+                {
+                    // Try to play idle state or stop
+                    if (animator.GetCurrentAnimatorStateInfo(0).IsName("Fire_Running"))
+                    {
+                        animator.Play("Idle", 0, 0f);
+                    }
+                }
+            }
+        }
+        else if (animationComponent != null)
         {
             if (isMoving)
             {
-                // Play running animation if not already playing
                 if (!animationComponent.IsPlaying("Running"))
                 {
                     animationComponent.Play("Running");
@@ -132,17 +182,11 @@ public class HeroController : MonoBehaviour
             }
             else
             {
-                // Stop running animation when not moving
                 if (animationComponent.IsPlaying("Running"))
                 {
                     animationComponent.Stop("Running");
                 }
             }
-        }
-        else if (animator != null)
-        {
-            // If using Animator component instead
-            animator.SetBool("IsMoving", isMoving);
         }
     }
     
