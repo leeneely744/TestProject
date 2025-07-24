@@ -111,7 +111,7 @@ public class SceneSetup : MonoBehaviour
         castle.AddComponent<Castle>();
         
         // Add trigger collider
-        BoxCollider2D trigger = castle.AddComponent<BoxCollider2D>();
+        BoxCollider trigger = castle.AddComponent<BoxCollider>();
         trigger.isTrigger = true;
     }
     

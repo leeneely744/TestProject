@@ -18,7 +18,6 @@ public class HeroController : MonoBehaviour
     private Vector3 moveDirection;
     private Rigidbody rb;
     private Animator animator;
-    private Animation animationComponent;
     private bool isMoving;
     
     void Start()
@@ -30,25 +29,26 @@ public class HeroController : MonoBehaviour
             Debug.Log("Added Rigidbody component to hero");
         }
         
-        // Check for existing Animator component
+        // Get the Animator component (should already exist with Fire_AC)
         animator = GetComponent<Animator>();
         
-        // If Animator exists but has no controller, prefer using Animation component
-        if (animator != null && animator.runtimeAnimatorController == null)
+        if (animator != null && animator.runtimeAnimatorController != null)
         {
-            Debug.Log("Animator found but no controller assigned. Using Animation component instead.");
-            animator = null; // Don't use the Animator
-        }
-        
-        // Set up Animation component if not using Animator
-        if (animator == null)
-        {
-            animationComponent = GetComponent<Animation>();
-            if (animationComponent == null)
+            Debug.Log($"Using Animator Controller: {animator.runtimeAnimatorController.name}");
+            
+            // List all parameters in Fire_AC
+            var parameters = animator.parameters;
+            Debug.Log($"Fire_AC has {parameters.Length} parameters:");
+            foreach (var param in parameters)
             {
-                animationComponent = gameObject.AddComponent<Animation>();
-                Debug.Log("Added Animation component to hero");
+                Debug.Log($"  - {param.name} ({param.type})");
             }
+            
+            Debug.Log("Fire_AC controller is loaded. We'll test which states work at runtime.");
+        }
+        else
+        {
+            Debug.LogError("No Animator or Animator Controller found!");
         }
         
         SetupAnimation();
@@ -56,19 +56,13 @@ public class HeroController : MonoBehaviour
     
     void SetupAnimation()
     {
-        if (runningAnimation != null)
+        if (animator != null && animator.runtimeAnimatorController != null)
         {
-            if (animationComponent != null)
-            {
-                // Add the animation clip to the Animation component
-                animationComponent.AddClip(runningAnimation, "Running");
-                animationComponent.wrapMode = WrapMode.Loop;
-                Debug.Log("Fire_Running animation added to Animation component");
-            }
+            Debug.Log("Fire_AC controller is ready to use!");
         }
         else
         {
-            Debug.LogWarning("Please assign Fire_Running.anim to the Running Animation field in the inspector!");
+            Debug.LogWarning("Fire_AC controller not properly set up!");
         }
     }
     
@@ -127,65 +121,22 @@ public class HeroController : MonoBehaviour
     
     void UpdateAnimation()
     {
-        if (runningAnimation == null) return;
-        
         if (animator != null && animator.runtimeAnimatorController != null)
         {
-            // Try to find any bool parameter that might control movement
-            var parameters = animator.parameters;
-            bool foundMovementParameter = false;
+            // Your Fire_AC controller has: Blend (Float), Attack (Trigger), Jump (Trigger)
+            // We'll use the Blend parameter to control movement animation
             
-            foreach (var param in parameters)
-            {
-                if (param.type == AnimatorControllerParameterType.Bool)
-                {
-                    // Try common parameter names for movement
-                    if (param.name.ToLower().Contains("move") || 
-                        param.name.ToLower().Contains("run") || 
-                        param.name.ToLower().Contains("walk") ||
-                        param.name == "IsMoving")
-                    {
-                        animator.SetBool(param.name, isMoving);
-                        foundMovementParameter = true;
-                        Debug.Log($"Using parameter: {param.name} = {isMoving}");
-                        break;
-                    }
-                }
-            }
-            
-            // If no movement parameter found, try to play animation directly
-            if (!foundMovementParameter)
-            {
-                if (isMoving)
-                {
-                    // Try to play the running state directly
-                    animator.Play("Fire_Running", 0, 0f);
-                }
-                else
-                {
-                    // Try to play idle state or stop
-                    if (animator.GetCurrentAnimatorStateInfo(0).IsName("Fire_Running"))
-                    {
-                        animator.Play("Idle", 0, 0f);
-                    }
-                }
-            }
-        }
-        else if (animationComponent != null)
-        {
             if (isMoving)
             {
-                if (!animationComponent.IsPlaying("Running"))
-                {
-                    animationComponent.Play("Running");
-                }
+                // Set Blend to 1.0 when moving (this should trigger running animation)
+                animator.SetFloat("Blend", 1.0f);
+                Debug.Log("Setting Blend parameter to 1.0 (moving)");
             }
             else
             {
-                if (animationComponent.IsPlaying("Running"))
-                {
-                    animationComponent.Stop("Running");
-                }
+                // Set Blend to 0.0 when idle
+                animator.SetFloat("Blend", 0.0f);
+                Debug.Log("Setting Blend parameter to 0.0 (idle)");
             }
         }
     }
