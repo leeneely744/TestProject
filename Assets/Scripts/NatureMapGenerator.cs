@@ -34,7 +34,8 @@ public class NatureMapGenerator : MonoBehaviour
     
     void Start()
     {
-        CreateNatureMap();
+        // Disabled automatic map generation - use the manually created battlefield instead
+        // CreateNatureMap();
     }
     
     [ContextMenu("Generate Nature Map")]

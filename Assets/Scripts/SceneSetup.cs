@@ -40,7 +40,8 @@ public class SceneSetup : MonoBehaviour
     
     void Start()
     {
-        SetupScene();
+        // Disabled automatic scene setup - use the manually created battlefield instead
+        // SetupScene();
     }
     
     void SetupScene()
