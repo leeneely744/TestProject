@@ -104,9 +104,11 @@ public class LowpolyNatureManager : MonoBehaviour
                 continue;
             }
             
-            // Organize terrain
-            if (name.Contains("terrain") || name.Contains("plane") || name.Contains("ground"))
+            // Organize terrain (including Unity Terrain objects)
+            if (name.Contains("terrain") || name.Contains("plane") || name.Contains("ground") || 
+                obj.GetComponent<Terrain>() != null)
             {
+                obj.name = "Battlefield " + obj.name;
                 obj.transform.SetParent(terrainParent);
                 continue;
             }

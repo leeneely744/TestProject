@@ -83,17 +83,57 @@ public class NatureMapGenerator : MonoBehaviour
     
     void CreateGround()
     {
+        // Use existing terrain instead of creating a new GroundPlane
+        Terrain existingTerrain = FindObjectOfType<Terrain>();
+        
+        if (existingTerrain != null)
+        {
+            Debug.Log("Using existing terrain as battlefield ground");
+            existingTerrain.name = "Battlefield Terrain";
+            
+            if (organizeIntoFolders && natureParent != null)
+            {
+                existingTerrain.transform.SetParent(natureParent);
+            }
+        }
+        else
+        {
+            // If no terrain exists, check for terrain objects from the Lowpoly nature pack
+            GameObject terrainObject = GameObject.Find("terrain");
+            if (terrainObject != null)
+            {
+                Debug.Log("Using Lowpoly nature terrain as battlefield");
+                terrainObject.name = "Battlefield Terrain";
+                
+                if (organizeIntoFolders && natureParent != null)
+                {
+                    terrainObject.transform.SetParent(natureParent);
+                }
+            }
+            else
+            {
+                Debug.LogWarning("No terrain found! Creating a simple ground plane as fallback");
+                CreateFallbackGround();
+            }
+        }
+    }
+    
+    void CreateFallbackGround()
+    {
         GameObject ground = GameObject.CreatePrimitive(PrimitiveType.Plane);
-        ground.name = "Ground";
+        ground.name = "Battlefield Ground (Fallback)";
         ground.transform.localScale = new Vector3(mapSize, 1, mapSize);
         ground.transform.position = Vector3.zero;
         
-        // Create a nice grass-green material
+        // Create a nice battlefield material
         Material groundMaterial = new Material(Shader.Find("Standard"));
-        groundMaterial.color = new Color(0.2f, 0.6f, 0.1f);
+        groundMaterial.color = new Color(0.3f, 0.5f, 0.2f); // Darker green for battlefield
         ground.GetComponent<Renderer>().material = groundMaterial;
         
-        ground.transform.SetParent(natureParent);
+        if (organizeIntoFolders && natureParent != null)
+        {
+            ground.transform.SetParent(natureParent);
+        }
     }
     
     void AddTreesFromAssets()
