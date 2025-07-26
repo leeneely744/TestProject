@@ -4,17 +4,17 @@ public class NatureMapGenerator : MonoBehaviour
 {
     [Header("Map Settings")]
     public int mapSize = 50;
-    public float treeSpacing = 4f;
+    public float treeSpacing = 8f;  // Increased spacing between trees
     public float rockSpacing = 3f;
     
     [Header("Spawn Chances")]
-    public float treeSpawnChance = 0.25f;
+    public float treeSpawnChance = 0.1f;  // Reduced from 0.25f to spawn fewer trees
     public float rockSpawnChance = 0.3f;
     public float grassSpawnChance = 0.5f;
     public float flowerSpawnChance = 0.2f;
     
     [Header("Scale Ranges")]
-    public Vector2 treeScaleRange = new Vector2(0.8f, 1.2f);
+    public Vector2 treeScaleRange = new Vector2(0.6f, 0.9f);  // Reduced from 0.8f-1.2f
     public Vector2 rockScaleRange = new Vector2(0.5f, 1.5f);
     
     [Header("Special Locations")]
