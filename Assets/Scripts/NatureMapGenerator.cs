@@ -22,6 +22,9 @@ public class NatureMapGenerator : MonoBehaviour
     public Vector3 waterScale = new Vector3(12, 1, 12);
     public Vector3 campfirePosition = new Vector3(-15, 0, -15);
     
+    [Header("Organization")]
+    public bool organizeIntoFolders = true;
+    
     private Transform natureParent;
     private Transform treesParent;
     private Transform rocksParent;
