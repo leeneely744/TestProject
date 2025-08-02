@@ -20,9 +20,18 @@ public class MonsterSpawner : MonoBehaviour
     
     private void Start()
     {
+        Debug.Log("MonsterSpawner Start() called");
+        Debug.Log($"MonsterPrefab: {(monsterPrefab != null ? monsterPrefab.name : "NULL")}");
+        Debug.Log($"PathManager: {(pathManager != null ? pathManager.name : "NULL")}");
+        Debug.Log($"AutoStart: {autoStart}");
+        
         if (autoStart)
         {
             StartSpawning();
+        }
+        else
+        {
+            Debug.Log("AutoStart is disabled");
         }
     }
     
@@ -71,13 +80,22 @@ public class MonsterSpawner : MonoBehaviour
     
     private void SpawnMonster()
     {
+        Debug.Log("SpawnMonster() called");
+        Debug.Log($"MonsterPrefab: {(monsterPrefab != null ? "Found" : "NULL")}");
+        Debug.Log($"PathManager: {(pathManager != null ? "Found" : "NULL")}");
+        Debug.Log($"PathLength: {(pathManager != null ? pathManager.PathLength : 0)}");
+        
         if (monsterPrefab == null || pathManager == null || pathManager.PathLength == 0)
         {
             Debug.LogWarning("Cannot spawn monster: missing prefab or path!");
+            Debug.LogWarning($"  MonsterPrefab null: {monsterPrefab == null}");
+            Debug.LogWarning($"  PathManager null: {pathManager == null}");
+            Debug.LogWarning($"  PathLength: {(pathManager != null ? pathManager.PathLength : 0)}");
             return;
         }
         
         Vector3 spawnPosition = pathManager.GetPointPosition(0);
+        Debug.Log($"Spawning monster at position: {spawnPosition}");
         GameObject monster = Instantiate(monsterPrefab, spawnPosition, Quaternion.identity);
         
         // モンスターにパス情報を渡す
