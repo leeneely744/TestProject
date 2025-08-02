@@ -31,12 +31,34 @@ public class MonsterMovement : MonoBehaviour
         // Rigidbodyの設定
         rb.useGravity = true;
         rb.isKinematic = false;
-        rb.freezeRotation = true; // 物理的な回転を防ぐ
+        rb.freezeRotation = true;
+        rb.mass = 1f;
+        rb.linearDamping = 2f; // 空気抵抗を増やして安定化
+        rb.angularDamping = 10f;
+        
+        // Colliderの確認と追加
+        EnsureCollider();
         
         if (pathManager != null)
         {
             StartMovement();
         }
+    }
+    
+    private void EnsureCollider()
+    {
+        Collider col = GetComponent<Collider>();
+        if (col == null)
+        {
+            // Colliderがない場合はCapsule Colliderを追加
+            CapsuleCollider capsule = gameObject.AddComponent<CapsuleCollider>();
+            capsule.radius = 0.5f;
+            capsule.height = 2f;
+            capsule.center = new Vector3(0, 1f, 0);
+        }
+        
+        // Colliderがトリガーになっていないことを確認
+        GetComponent<Collider>().isTrigger = false;
     }
     
     public void SetPath(PathManager path)
