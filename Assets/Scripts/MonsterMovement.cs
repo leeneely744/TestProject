@@ -7,6 +7,8 @@ public class MonsterMovement : MonoBehaviour
     [SerializeField] private float moveSpeed = 3f;
     [SerializeField] private float rotationSpeed = 5f;
     [SerializeField] private float stopDistance = 0.1f;
+    [SerializeField] private float groundCheckDistance = 10f;
+    [SerializeField] private LayerMask groundLayer = -1;
     
     private PathManager pathManager;
     private int currentPointIndex = 0;
@@ -46,6 +48,9 @@ public class MonsterMovement : MonoBehaviour
             return;
         }
         
+        // 開始位置を地面に合わせる
+        transform.position = GetGroundPosition(transform.position);
+        
         isMoving = true;
         SetNextTarget();
     }
@@ -68,7 +73,11 @@ public class MonsterMovement : MonoBehaviour
         
         // ターゲットに向かって移動
         Vector3 direction = (targetPosition - transform.position).normalized;
-        transform.position += direction * moveSpeed * Time.deltaTime;
+        Vector3 newPosition = transform.position + direction * moveSpeed * Time.deltaTime;
+        
+        // 地面の高さをチェック
+        newPosition = GetGroundPosition(newPosition);
+        transform.position = newPosition;
         
         // 移動方向を向く
         if (direction != Vector3.zero)
@@ -76,6 +85,22 @@ public class MonsterMovement : MonoBehaviour
             Quaternion targetRotation = Quaternion.LookRotation(direction);
             transform.rotation = Quaternion.Lerp(transform.rotation, targetRotation, rotationSpeed * Time.deltaTime);
         }
+    }
+    
+    private Vector3 GetGroundPosition(Vector3 position)
+    {
+        // 上方から地面に向かってレイキャスト
+        Vector3 rayStart = position + Vector3.up * groundCheckDistance;
+        RaycastHit hit;
+        
+        if (Physics.Raycast(rayStart, Vector3.down, out hit, groundCheckDistance * 2f, groundLayer))
+        {
+            // 地面が見つかった場合、少し上に配置
+            return hit.point + Vector3.up * 0.1f;
+        }
+        
+        // 地面が見つからない場合は元の位置を返す
+        return position;
     }
     
     private void OnReachedWaypoint()

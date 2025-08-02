@@ -21,8 +21,15 @@ public class Monster : MonoBehaviour
         currentHealth = health;
         movement = GetComponent<MonsterMovement>();
         
-        // モンスタータグを設定
-        gameObject.tag = "Monster";
+        // モンスタータグを設定（エラーハンドリング付き）
+        try
+        {
+            gameObject.tag = "Monster";
+        }
+        catch (UnityException e)
+        {
+            Debug.LogWarning($"Monster tag not found: {e.Message}. Please create 'Monster' tag in Project Settings.");
+        }
     }
     
     public void TakeDamage(int damageAmount)
