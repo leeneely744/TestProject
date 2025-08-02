@@ -1,18 +1,17 @@
 using UnityEngine;
 using System.Collections;
 
-public class MonsterMovement : MonoBehaviour
+public class SimpleMonsterMovement : MonoBehaviour
 {
     [Header("Movement Settings")]
     [SerializeField] private float moveSpeed = 3f;
     [SerializeField] private float rotationSpeed = 5f;
-    [SerializeField] private float stopDistance = 0.1f;
+    [SerializeField] private float stopDistance = 0.5f;
     
     private PathManager pathManager;
     private int currentPointIndex = 0;
     private bool isMoving = false;
     private Vector3 targetPosition;
-    private Rigidbody rb;
     
     public float MoveSpeed 
     { 
@@ -22,17 +21,6 @@ public class MonsterMovement : MonoBehaviour
     
     private void Start()
     {
-        rb = GetComponent<Rigidbody>();
-        if (rb == null)
-        {
-            rb = gameObject.AddComponent<Rigidbody>();
-        }
-        
-        // Rigidbodyの設定
-        rb.useGravity = true;
-        rb.isKinematic = false;
-        rb.freezeRotation = true; // 物理的な回転を防ぐ
-        
         if (pathManager != null)
         {
             StartMovement();
@@ -72,21 +60,24 @@ public class MonsterMovement : MonoBehaviour
     private void MoveTowardsTarget()
     {
         Vector3 currentPos = transform.position;
-        Vector3 targetPos = new Vector3(targetPosition.x, currentPos.y, targetPosition.z); // Y軸は現在の高さを維持
+        Vector3 targetPos = targetPosition;
         
-        if (Vector3.Distance(currentPos, targetPos) <= stopDistance)
+        // Y座標は地面に固定（簡単なアプローチ）
+        targetPos.y = currentPos.y;
+        
+        float distance = Vector3.Distance(currentPos, targetPos);
+        
+        if (distance <= stopDistance)
         {
-            // 現在のポイントに到達
             OnReachedWaypoint();
             return;
         }
         
-        // ターゲットに向かって移動（Y軸は除外）
+        // 移動
         Vector3 direction = (targetPos - currentPos).normalized;
-        Vector3 velocity = new Vector3(direction.x * moveSpeed, rb.linearVelocity.y, direction.z * moveSpeed);
-        rb.linearVelocity = velocity;
+        transform.position += direction * moveSpeed * Time.deltaTime;
         
-        // 移動方向を向く
+        // 回転
         if (direction != Vector3.zero)
         {
             Quaternion targetRotation = Quaternion.LookRotation(direction);
@@ -96,7 +87,6 @@ public class MonsterMovement : MonoBehaviour
     
     private void OnReachedWaypoint()
     {
-        // ウェイポイントでの待機時間チェック
         Transform currentPoint = pathManager.GetPoint(currentPointIndex);
         if (currentPoint != null)
         {
@@ -108,7 +98,6 @@ public class MonsterMovement : MonoBehaviour
             }
         }
         
-        // 次のポイントへ
         MoveToNextPoint();
     }
     
@@ -126,7 +115,6 @@ public class MonsterMovement : MonoBehaviour
         
         if (currentPointIndex >= pathManager.PathLength)
         {
-            // パス終了 - World Treeに到達
             OnReachedDestination();
         }
         else
@@ -147,7 +135,6 @@ public class MonsterMovement : MonoBehaviour
     {
         Debug.Log($"Monster {gameObject.name} reached World Tree!");
         
-        // World Treeにダメージを与える処理を探す
         TargetPoint targetPoint = FindObjectOfType<TargetPoint>();
         if (targetPoint != null)
         {
@@ -155,34 +142,7 @@ public class MonsterMovement : MonoBehaviour
         }
         else
         {
-            // TargetPointが見つからない場合は直接削除
             Destroy(gameObject);
-        }
-    }
-    
-    public void SetSpeed(float newSpeed)
-    {
-        moveSpeed = Mathf.Max(0, newSpeed);
-    }
-    
-    public void StopMovement()
-    {
-        isMoving = false;
-    }
-    
-    public void ResumeMovement()
-    {
-        isMoving = true;
-    }
-    
-    // デバッグ用
-    private void OnDrawGizmos()
-    {
-        if (isMoving)
-        {
-            Gizmos.color = Color.red;
-            Gizmos.DrawLine(transform.position, targetPosition);
-            Gizmos.DrawWireSphere(targetPosition, 0.2f);
         }
     }
 }
