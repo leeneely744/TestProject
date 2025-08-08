@@ -100,9 +100,21 @@ public class MonsterSpawner : MonoBehaviour
         
         // モンスターにパス情報を渡す
         MonsterMovement movement = monster.GetComponent<MonsterMovement>();
+        SimpleMonsterMovement simpleMovement = monster.GetComponent<SimpleMonsterMovement>();
+        
         if (movement != null)
         {
             movement.SetPath(pathManager);
+            Debug.Log("Path assigned to MonsterMovement component");
+        }
+        else if (simpleMovement != null)
+        {
+            simpleMovement.SetPath(pathManager);
+            Debug.Log("Path assigned to SimpleMonsterMovement component");
+        }
+        else
+        {
+            Debug.LogWarning($"No movement component found on {monster.name}!");
         }
         
         spawnedMonsters++;
